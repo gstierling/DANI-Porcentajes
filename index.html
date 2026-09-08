@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Porcentajes Dani</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #f4f2ec;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  }
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 0 0 2rem;
+    color: #2c2c2a;
+  }
+  #start-btn, #ok-btn, #again-btn {
+    font-size: 18px;
+    font-weight: 600;
+    padding: 16px 36px;
+    border-radius: 12px;
+    border: none;
+    background: #26215c;
+    color: #fff;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  #start-btn:active, #ok-btn:active, #again-btn:active {
+    transform: scale(0.97);
+  }
+  #question {
+    font-size: 15vw;
+    line-height: 1.1;
+    font-weight: 800;
+    margin: 0 0 1.5rem;
+    color: #26215c;
+    word-break: break-word;
+  }
+  @media (min-width: 480px) {
+    #question { font-size: 64px; }
+  }
+  #answer-input {
+    width: 100%;
+    max-width: 260px;
+    font-size: 22px;
+    text-align: center;
+    padding: 14px;
+    border-radius: 10px;
+    border: 2px solid #b4b2a9;
+    margin-bottom: 20px;
+  }
+  #answer-input:focus {
+    outline: none;
+    border-color: #26215c;
+  }
+  #timer {
+    font-size: 20px;
+    font-weight: 600;
+    color: #5f5e5a;
+    margin-top: 1.5rem;
+  }
+  #error-msg {
+    font-size: 14px;
+    color: #a32d2d;
+    display: none;
+    margin-top: 8px;
+  }
+  #result-msg {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 1.5rem 0 2rem;
+  }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>PORCENTAJES DANI</h1>
+
+  <div id="start-screen">
+    <button id="start-btn">Empezar</button>
+  </div>
+
+  <div id="game-screen" class="hidden">
+    <p id="question"></p>
+    <input id="answer-input" type="number" inputmode="decimal" placeholder="Tu respuesta" />
+    <div>
+      <button id="ok-btn">OK</button>
+    </div>
+    <p id="timer">30</p>
+    <p id="error-msg">Ingresa un número antes de continuar.</p>
+  </div>
+
+  <div id="result-screen" class="hidden">
+    <p id="result-msg"></p>
+    <button id="again-btn">Otra vez</button>
+  </div>
+</div>
+
+<script>
+  const startScreen = document.getElementById('start-screen');
+  const gameScreen = document.getElementById('game-screen');
+  const resultScreen = document.getElementById('result-screen');
+  const questionEl = document.getElementById('question');
+  const answerInput = document.getElementById('answer-input');
+  const timerEl = document.getElementById('timer');
+  const errorMsg = document.getElementById('error-msg');
+  const resultMsg = document.getElementById('result-msg');
+
+  const goodMsgs = [
+    'Eres espectacular Dani',
+    'Dani, eres mejor que Einstein',
+    'Increíble Dani, dominas los porcentajes',
+    'Genial Dani, sigue así'
+  ];
+  const badMsg = 'Qué lástima Dani. Tu papá quizás si pueda.';
+
+  let correctAnswer = 0;
+  let countdown = null;
+  let timeLeft = 30;
+
+  function newQuestion() {
+    const pct = Math.floor(Math.random() * 200) + 1;
+    const base = (Math.floor(Math.random() * 10) + 1) * 10;
+    correctAnswer = Math.round((pct / 100) * base * 100) / 100;
+    questionEl.textContent = pct + '% de ' + base;
+  }
+
+  function startGame() {
+    newQuestion();
+    answerInput.value = '';
+    errorMsg.style.display = 'none';
+    timeLeft = 30;
+    timerEl.textContent = timeLeft;
+    startScreen.classList.add('hidden');
+    resultScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+    clearInterval(countdown);
+    countdown = setInterval(() => {
+      timeLeft--;
+      timerEl.textContent = timeLeft;
+      if (timeLeft <= 0) {
+        clearInterval(countdown);
+        finishGame(false);
+      }
+    }, 1000);
+  }
+
+  function finishGame(isCorrect) {
+    clearInterval(countdown);
+    gameScreen.classList.add('hidden');
+    resultScreen.classList.remove('hidden');
+    if (isCorrect) {
+      resultMsg.textContent = goodMsgs[Math.floor(Math.random() * goodMsgs.length)];
+      resultMsg.style.color = '#3b6d11';
+    } else {
+      resultMsg.textContent = badMsg;
+      resultMsg.style.color = '#a32d2d';
+    }
+  }
+
+  function checkAnswer() {
+    const val = answerInput.value.trim();
+    if (val === '') {
+      errorMsg.style.display = 'block';
+      return;
+    }
+    errorMsg.style.display = 'none';
+    const userAnswer = parseFloat(val);
+    const isCorrect = Math.abs(userAnswer - correctAnswer) < 0.01;
+    finishGame(isCorrect);
+  }
+
+  document.getElementById('start-btn').addEventListener('click', startGame);
+  document.getElementById('ok-btn').addEventListener('click', checkAnswer);
+  document.getElementById('again-btn').addEventListener('click', startGame);
+  answerInput.addEventListener('input', () => { errorMsg.style.display = 'none'; });
+  answerInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswer(); });
+</script>
+</body>
+</html>
